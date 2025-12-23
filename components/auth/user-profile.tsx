@@ -1,3 +1,4 @@
+import Image from "next/image"
 import type { Session } from "next-auth"
 import { SignOutButton } from "./sign-out-button"
 
@@ -10,10 +11,12 @@ export function UserProfile({ session }: UserProfileProps) {
     <div className="flex items-center gap-3">
       <div className="flex items-center gap-2">
         {session.user?.image && (
-          <img
+          <Image
             src={session.user.image}
             alt={session.user.name || "User avatar"}
             className="h-8 w-8 rounded-full"
+            width={32}
+            height={32}
           />
         )}
         <div className="flex flex-col">
