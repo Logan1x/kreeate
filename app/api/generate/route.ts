@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     const { input } = requestSchema.parse(json)
 
     const completion = await openai.chat.completions.create({
-      model: 'openai/gpt-oss-20b:free',
+      model: 'openai/gpt-oss-safeguard-20b',
       messages: [
         {
           role: "system",
@@ -88,7 +88,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("Error generating issue:", error)
     return NextResponse.json(
-      { error: "Failed to generate issue" },
+      { error: "Failed to generate issue", details: error instanceof Error ? error : String(error) },
       { status: 500 }
     )
   }
