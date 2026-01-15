@@ -386,7 +386,7 @@ export default function Home() {
         )}
 
         <footer className="mt-20 w-full text-center py-12 border-t border-white/5">
-          <p className="text-white/40 text-sm">© 2026 Kreeate. Made for developers.</p>
+          <p className="text-white/40 text-sm">© 2026 Kreeate. No coding required.</p>
         </footer>
       </div>
     </div>
