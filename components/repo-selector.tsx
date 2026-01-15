@@ -156,15 +156,17 @@ export function RepoSelector({ value, onChange, lastRepo }: RepoSelectorProps) {
               size="sm"
               onClick={fetchRepos}
               disabled={isLoading}
+              className="text-white/70 hover:text-white hover:bg-white/10"
             >
               <IconRefresh className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
             </Button>
           )}
           <Button
             type="button"
-            variant="outline"
+            variant="secondary"
             size="sm"
             onClick={() => setMode(mode === "dropdown" ? "manual" : "dropdown")}
+            className="border-white/20 bg-white/10 text-white hover:bg-white/20"
           >
             {mode === "dropdown" ? "Manual Input" : "Dropdown"}
           </Button>
@@ -191,12 +193,12 @@ export function RepoSelector({ value, onChange, lastRepo }: RepoSelectorProps) {
                 <div
                   role="combobox"
                   aria-expanded={openOwner}
-                  className="flex h-8 w-full items-center justify-between rounded-none border border-input bg-transparent px-2.5 py-2 text-xs transition-colors hover:bg-input/30 focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 cursor-pointer"
+                  className="flex h-10 w-full items-center justify-between rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm transition-colors hover:bg-white/15 focus-visible:border-white/30 focus-visible:ring-1 focus-visible:ring-white/20 cursor-pointer"
                 >
-                  <span className="truncate flex-1 text-left">
+                  <span className="truncate flex-1 text-left text-white/90">
                     {selectedOwner || "Select owner..."}
                   </span>
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50 text-white/50" />
                 </div>
               </PopoverTrigger>
               <PopoverContent className="w-[var(--radix-popover-trigger-width)] max-w-[500px] p-0" align="start">
@@ -233,13 +235,13 @@ export function RepoSelector({ value, onChange, lastRepo }: RepoSelectorProps) {
                 <div
                   role="combobox"
                   aria-expanded={openRepo}
-                  className="flex h-8 w-full items-center justify-between rounded-none border border-input bg-transparent px-2.5 py-2 text-xs transition-colors hover:bg-input/30 focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-10 w-full items-center justify-between rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm transition-colors hover:bg-white/15 focus-visible:border-white/30 focus-visible:ring-1 focus-visible:ring-white/20 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                   {...(!selectedOwner && { 'data-disabled': true })}
                 >
-                  <span className="truncate flex-1 text-left">
+                  <span className="truncate flex-1 text-left text-white/90">
                     {value?.name || "Select repository..."}
                   </span>
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50 text-white/50" />
                 </div>
               </PopoverTrigger>
               {selectedOwner && (
@@ -290,20 +292,20 @@ export function RepoSelector({ value, onChange, lastRepo }: RepoSelectorProps) {
             placeholder="owner or organization"
             value={manualOwner}
             onChange={(e) => handleManualInputChange(e.target.value, manualRepo)}
-            className="font-mono text-sm flex-1"
+            className="font-mono text-sm flex-1 bg-white/10 border-white/10 text-white placeholder:text-white/40 rounded-xl h-10"
           />
           <Input
             placeholder="repository-name"
             value={manualRepo}
             onChange={(e) => handleManualInputChange(manualOwner, e.target.value)}
-            className="font-mono text-sm flex-1"
+            className="font-mono text-sm flex-1 bg-white/10 border-white/10 text-white placeholder:text-white/40 rounded-xl h-10"
           />
         </div>
       )}
 
       {value && (
-        <p className="text-xs text-muted-foreground">
-          Selected: <span className="font-mono">{value.owner}/{value.name}</span>
+        <p className="text-xs text-white/40">
+          Selected: <span className="font-mono text-white/70">{value.owner}/{value.name}</span>
         </p>
       )}
     </div>
