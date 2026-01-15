@@ -156,7 +156,7 @@ export function RepoSelector({ value, onChange, lastRepo }: RepoSelectorProps) {
               size="sm"
               onClick={fetchRepos}
               disabled={isLoading}
-              className="text-white/70 hover:text-white hover:bg-white/10"
+              className="text-white/70 hover:text-white hover:bg-white/10 cursor-pointer"
             >
               <IconRefresh className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
             </Button>
@@ -166,7 +166,7 @@ export function RepoSelector({ value, onChange, lastRepo }: RepoSelectorProps) {
             variant="secondary"
             size="sm"
             onClick={() => setMode(mode === "dropdown" ? "manual" : "dropdown")}
-            className="border-white/20 bg-white/10 text-white hover:bg-white/20"
+            className="border-white/20 bg-white/10 text-white hover:bg-white/20 cursor-pointer"
           >
             {mode === "dropdown" ? "Manual Input" : "Dropdown"}
           </Button>

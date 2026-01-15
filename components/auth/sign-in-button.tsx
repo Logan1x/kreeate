@@ -22,7 +22,7 @@ export function SignInButton() {
     <Button
       onClick={handleSignIn}
       disabled={isLoading}
-      className="w-full sm:w-auto"
+      className="w-full sm:w-auto rounded-xl cursor-pointer"
       size="lg"
     >
       {isLoading ? (

@@ -191,7 +191,7 @@ export default function Home() {
                 onClick={() => signOut({ callbackUrl: "/" })}
                 variant="secondary"
                 size="sm"
-                className="border-white/20 bg-white/10 text-white hover:bg-white/20 whitespace-nowrap"
+                className="border-white/20 bg-white/10 text-white hover:bg-white/20 cursor-pointer"
               >
                 Sign out
               </Button>
@@ -202,22 +202,21 @@ export default function Home() {
         {!session ? (
           <>
             <div className="text-center max-w-4xl mx-auto space-y-8 mb-32 md:mb-40">
-              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-1000 fill-mode-both">
+              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-8 duration-1000 fill-mode-both">
                 <h1 className="text-6xl md:text-8xl lg:text-9xl font-extrabold tracking-tighter leading-[0.9] text-white">
                   Writing issues<br />
                   <span className="text-white/50">sucks.</span>
                 </h1>
-                <p className="text-xl md:text-2xl text-white/60 max-w-xl mx-auto leading-relaxed font-medium">
-                  Describe it in plain English. <br />
-                  Get a perfectly formatted bug report or feature request. <br />
-                  <span className="text-white/40 underline decoration-white/20 underline-offset-4">No more templates.</span>
-                </p>
+                  <p className="text-xl md:text-2xl text-white/60 max-w-xl mx-auto leading-relaxed font-medium">
+                    Describe it in plain English. <br />
+                    Get a perfectly formatted bug report or feature request.
+                  </p>
               </div>
 
-              <div className="w-full max-w-md mx-auto animate-in fade-in zoom-in duration-1000 delay-200 fill-mode-both pt-8">
+              <div className="w-full max-w-md mx-auto animate-in fade-in zoom-in duration-1000 delay-200 fill-mode-both pt-4">
                 <SignInButton />
-                <p className="mt-6 text-xs text-white/40 font-mono uppercase tracking-widest opacity-60">
-                  Free Forever • No Signup • GitHub Only
+                <p className="mt-4 text-xs text-white/40 font-mono uppercase tracking-widest opacity-60">
+                  Free Forever • Just GitHub • No Installs
                 </p>
               </div>
             </div>
@@ -311,7 +310,7 @@ export default function Home() {
                     <Button
                       onClick={generateIssue}
                       disabled={isGenerating || !input.trim()}
-                      className="w-full bg-white text-black hover:bg-white/90 font-semibold"
+                      className="w-full bg-white text-black hover:bg-white/90 font-semibold cursor-pointer"
                     >
                       {isGenerating && <IconLoader2 className="mr-2 animate-spin" />}
                       {isGenerating ? "Generating..." : "Generate Issue"} <kbd className="ml-2 px-1.5 py-0.5 bg-white/20 rounded text-xs font-mono">⌘ + Enter</kbd>
@@ -366,7 +365,7 @@ export default function Home() {
                       <Button
                         onClick={submitIssue}
                         disabled={isSubmitting || !title.trim() || !body.trim() || !selectedRepo}
-                        className="w-full bg-white text-black hover:bg-white/90 font-semibold"
+                        className="w-full bg-white text-black hover:bg-white/90 font-semibold cursor-pointer"
                       >
                         {isSubmitting && <IconLoader2 className="mr-2 animate-spin" />}
                         {isSubmitting ? "Submitting..." : "Submit Issue"}
@@ -386,7 +385,7 @@ export default function Home() {
         )}
 
         <footer className="mt-20 w-full text-center py-12 border-t border-white/5">
-          <p className="text-white/40 text-sm">© 2026 Kreeate. No coding required.</p>
+          <p className="text-white/40 text-sm">© 2026 Kreeate. Describe it. We format it.</p>
         </footer>
       </div>
     </div>
