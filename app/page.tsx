@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { IconLoader2 } from "@tabler/icons-react"
 import { SignInButton } from "@/components/auth/sign-in-button"
@@ -15,10 +14,10 @@ import { RepoSelector } from "@/components/repo-selector"
 import { SignOutButton } from "@/components/auth/sign-out-button"
 
 const PRIORITY_LABELS = [
-  { value: "P0-Unbreak Now", label: "P0-Unbreak Now" },
-  { value: "P1-Must Have", label: "P1-Must Have" },
-  { value: "P2-Normal", label: "P2-Normal" },
-  { value: "P3-Low Priority", label: "P3-Low Priority" },
+  { value: "P0-Unbreak Now", label: "P0", color: "bg-red-500" },
+  { value: "P1-Must Have", label: "P1", color: "bg-orange-500" },
+  { value: "P2-Normal", label: "P2", color: "bg-yellow-500" },
+  { value: "P3-Low Priority", label: "P3", color: "bg-blue-500" },
 ] as const
 
 export default function Home() {
@@ -349,18 +348,22 @@ export default function Home() {
                       </div>
                       <div className="mb-4">
                         <label className="text-sm font-medium mb-2 block text-white/70">Priority</label>
-                        <Select value={selectedLabel} onValueChange={(value) => value && setSelectedLabel(value)}>
-                          <SelectTrigger className="w-full bg-white/10 border-white/10 text-white rounded-xl h-12 px-4">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="bg-black border-white/10 text-white">
-                            {PRIORITY_LABELS.map((label) => (
-                              <SelectItem key={label.value} value={label.value}>
-                                {label.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <div className="flex gap-2">
+                          {PRIORITY_LABELS.map((label) => (
+                            <button
+                              key={label.value}
+                              onClick={() => setSelectedLabel(label.value)}
+                              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 border cursor-pointer ${
+                                selectedLabel === label.value
+                                  ? "bg-white/20 text-white border-white/30"
+                                  : "bg-white/5 text-white/60 border-white/10 hover:bg-white/10 hover:text-white/80"
+                              }`}
+                            >
+                              <span className={`w-2 h-2 rounded-full ${label.color}`} />
+                              {label.label}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                       <Button
                         onClick={submitIssue}
