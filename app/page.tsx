@@ -14,10 +14,10 @@ import { RepoSelector } from "@/components/repo-selector"
 import { SignOutButton } from "@/components/auth/sign-out-button"
 
 const PRIORITY_LABELS = [
-  { value: "P0-Unbreak Now", label: "P0", color: "bg-red-500" },
-  { value: "P1-Must Have", label: "P1", color: "bg-orange-500" },
-  { value: "P2-Normal", label: "P2", color: "bg-yellow-500" },
-  { value: "P3-Low Priority", label: "P3", color: "bg-blue-500" },
+  { value: "P0-Unbreak Now", label: "P0", color: "bg-red-500", description: "Unbreak Now" },
+  { value: "P1-Must Have", label: "P1", color: "bg-orange-500", description: "Must Have" },
+  { value: "P2-Normal", label: "P2", color: "bg-yellow-500", description: "Normal" },
+  { value: "P3-Low Priority", label: "P3", color: "bg-blue-500", description: "Low Priority" },
 ] as const
 
 export default function Home() {
@@ -361,6 +361,9 @@ export default function Home() {
                             >
                               <span className={`w-2 h-2 rounded-full ${label.color}`} />
                               {label.label}
+                              {selectedLabel === label.value && (
+                                <span className="text-xs opacity-60 ml-0.5">{label.description}</span>
+                              )}
                             </button>
                           ))}
                         </div>
