@@ -1,17 +1,15 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { useSession, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { IconLoader2 } from "@tabler/icons-react"
+import { IconChevronLeft, IconChevronRight, IconLoader2, IconRefresh } from "@tabler/icons-react"
 import { SignInButton } from "@/components/auth/sign-in-button"
-import { UserProfile } from "@/components/auth/user-profile"
 import { RepoSelector } from "@/components/repo-selector"
-import { SignOutButton } from "@/components/auth/sign-out-button"
 
 const PRIORITY_LABELS = [
   { value: "P0-Unbreak Now", label: "P0", color: "bg-red-500", description: "Unbreak Now" },
@@ -19,6 +17,16 @@ const PRIORITY_LABELS = [
   { value: "P2-Normal", label: "P2", color: "bg-yellow-500", description: "Normal" },
   { value: "P3-Low Priority", label: "P3", color: "bg-blue-500", description: "Low Priority" },
 ] as const
+
+interface RecentIssue {
+  id: number
+  number: number
+  title: string
+  url: string
+  state: "open" | "closed"
+  createdAt: string
+  repoFullName: string
+}
 
 export default function Home() {
   const { data: session, status } = useSession()
@@ -33,12 +41,21 @@ export default function Home() {
   const [message, setMessage] = useState<string | React.ReactNode>("")
   const [messageType, setMessageType] = useState<"success" | "error">("success")
   const [openAccordion, setOpenAccordion] = useState<string[]>(["describe"])
-  const [showCreator, setShowCreator] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [generationRequestId, setGenerationRequestId] = useState("")
+  const [recentIssues, setRecentIssues] = useState<RecentIssue[]>([])
+  const [isLoadingRecentIssues, setIsLoadingRecentIssues] = useState(false)
+  const [recentIssuesError, setRecentIssuesError] = useState("")
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
+  const [carouselPageCount, setCarouselPageCount] = useState(1)
+  const [carouselIndex, setCarouselIndex] = useState(0)
+  const recentIssuesScrollerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     if (session) {
       fetchUserPreferences()
+      fetchRecentIssues()
     }
   }, [session])
 
@@ -55,6 +72,79 @@ export default function Home() {
       console.error("Failed to fetch preferences:", error)
     }
   }
+
+  const fetchRecentIssues = async () => {
+    setIsLoadingRecentIssues(true)
+    setRecentIssuesError("")
+
+    try {
+      const response = await fetch("/api/recent-issues")
+      if (!response.ok) {
+        throw new Error("Failed to fetch recent issues")
+      }
+
+      const data = await response.json()
+      setRecentIssues(data.issues ?? [])
+    } catch (error) {
+      console.error(error)
+      setRecentIssuesError("Could not load recent issues right now.")
+    } finally {
+      setIsLoadingRecentIssues(false)
+    }
+  }
+
+  const formatIssueDate = (value: string) => {
+    const date = new Date(value)
+    return date.toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    })
+  }
+
+  const scrollRecentIssues = (direction: "left" | "right") => {
+    if (!recentIssuesScrollerRef.current) return
+
+    const scrollAmount = 320
+    recentIssuesScrollerRef.current.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    })
+  }
+
+  useEffect(() => {
+    const scroller = recentIssuesScrollerRef.current
+
+    if (!scroller) {
+      setCanScrollLeft(false)
+      setCanScrollRight(false)
+      setCarouselPageCount(1)
+      setCarouselIndex(0)
+      return
+    }
+
+    const updateScrollState = () => {
+      const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth
+      setCanScrollLeft(scroller.scrollLeft > 4)
+      setCanScrollRight(scroller.scrollLeft < maxScrollLeft - 4)
+
+      const step = 320
+      const pages = Math.max(1, Math.ceil(maxScrollLeft / step) + 1)
+      const index = Math.min(pages - 1, Math.max(0, Math.round(scroller.scrollLeft / step)))
+      setCarouselPageCount(pages)
+      setCarouselIndex(index)
+    }
+
+    updateScrollState()
+    scroller.addEventListener("scroll", updateScrollState, { passive: true })
+    window.addEventListener("resize", updateScrollState)
+
+    return () => {
+      scroller.removeEventListener("scroll", updateScrollState)
+      window.removeEventListener("resize", updateScrollState)
+    }
+  }, [recentIssues.length])
 
   const generateIssue = async () => {
     if (!input.trim()) return
@@ -76,11 +166,13 @@ export default function Home() {
       const data = await response.json()
       setTitle(data.title)
       setBody("Original issue:\n" + input + "\n\n" + data.body)
+      setGenerationRequestId(data.generationRequestId || "")
       setMessage("Issue generated successfully!")
       setMessageType("success")
       setOpenAccordion(["review"])
     } catch (error) {
       console.error(error)
+      setGenerationRequestId("")
       setMessage("Failed to generate issue. Please try again.")
       setMessageType("error")
     } finally {
@@ -104,6 +196,7 @@ export default function Home() {
           label: selectedLabel,
           repoOwner: selectedRepo.owner,
           repoName: selectedRepo.name,
+          generationRequestId: generationRequestId || undefined,
         }),
       })
 
@@ -113,6 +206,20 @@ export default function Home() {
       }
 
       const data = await response.json()
+      setRecentIssues((current) => {
+        const newIssue: RecentIssue = {
+          id: Date.now(),
+          number: data.issueNumber,
+          title: data.issueTitle || title,
+          url: data.issueUrl,
+          state: data.issueState || "open",
+          createdAt: data.issueCreatedAt || new Date().toISOString(),
+          repoFullName: data.repoFullName || `${selectedRepo.owner}/${selectedRepo.name}`,
+        }
+
+        const withoutDuplicate = current.filter((issue) => issue.url !== newIssue.url)
+        return [newIssue, ...withoutDuplicate].slice(0, 12)
+      })
       setIsSubmitted(true)
       setMessage(
         <span>
@@ -131,6 +238,7 @@ export default function Home() {
       setInput("")
       setTitle("")
       setBody("")
+      setGenerationRequestId("")
       setSelectedLabel("P2-Normal")
       setOpenAccordion(["describe"])
     } catch (error) {
@@ -386,6 +494,100 @@ export default function Home() {
                   <AlertDescription>{message}</AlertDescription>
                 </Alert>
               )}
+
+              <div className="mt-8">
+                <div className="mb-3 flex items-center justify-between">
+                  <h2 className="text-sm uppercase tracking-wider text-white/60 font-semibold">Recently Created Issues</h2>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={fetchRecentIssues}
+                    disabled={isLoadingRecentIssues}
+                    aria-label="Refresh recent issues"
+                    className="border border-white/20 bg-transparent text-white/80 hover:bg-white/10 hover:text-white cursor-pointer"
+                  >
+                    <IconRefresh className={`h-4 w-4 ${isLoadingRecentIssues ? "animate-spin" : ""}`} />
+                  </Button>
+                </div>
+
+                {recentIssuesError && (
+                  <p className="mb-3 text-sm text-red-300/90">{recentIssuesError}</p>
+                )}
+
+                {isLoadingRecentIssues && recentIssues.length === 0 ? (
+                  <div className="flex gap-3 overflow-hidden">
+                    {[0, 1, 2].map((item) => (
+                      <div
+                        key={item}
+                        className="min-w-[260px] h-28 rounded-xl border border-white/10 bg-white/5 animate-pulse"
+                      />
+                    ))}
+                  </div>
+                ) : recentIssues.length > 0 ? (
+                  <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 z-[5] w-14 bg-gradient-to-r from-black via-black/85 to-transparent" />
+                    <div className="pointer-events-none absolute inset-y-0 right-0 z-[5] w-14 bg-gradient-to-l from-black via-black/85 to-transparent" />
+                    <Button
+                      type="button"
+                      size="icon"
+                      onClick={() => scrollRecentIssues("left")}
+                      disabled={!canScrollLeft}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/35 text-white hover:bg-white hover:text-black rounded-full h-9 w-9 cursor-pointer transition-all disabled:cursor-not-allowed disabled:bg-white/20 disabled:text-white/70"
+                    >
+                      <IconChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      size="icon"
+                      onClick={() => scrollRecentIssues("right")}
+                      disabled={!canScrollRight}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/35 text-white hover:bg-white hover:text-black rounded-full h-9 w-9 cursor-pointer transition-all disabled:cursor-not-allowed disabled:bg-white/20 disabled:text-white/70"
+                    >
+                      <IconChevronRight className="h-4 w-4" />
+                    </Button>
+                    <div
+                      ref={recentIssuesScrollerRef}
+                      className="overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                    >
+                      <div className="flex gap-3 snap-x snap-mandatory px-12">
+                      {recentIssues.map((issue) => (
+                        <a
+                          key={issue.url}
+                          href={issue.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="snap-start min-w-[260px] max-w-[320px] flex-1 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors p-4"
+                        >
+                          <p className="text-xs text-white/50 mb-2 font-mono truncate">{issue.repoFullName} #{issue.number}</p>
+                          <p className="text-sm text-white leading-snug max-h-10 overflow-hidden mb-2">{issue.title}</p>
+                          <div className="flex items-center justify-between text-xs">
+                            <span className={`inline-flex px-2 py-0.5 rounded-full ${issue.state === "open" ? "bg-emerald-500/20 text-emerald-300" : "bg-zinc-500/30 text-zinc-200"}`}>
+                              {issue.state}
+                            </span>
+                            <span className="text-white/45">{formatIssueDate(issue.createdAt)}</span>
+                          </div>
+                        </a>
+                      ))}
+                      </div>
+                    </div>
+                    {carouselPageCount > 1 && (
+                      <div className="mt-3 flex items-center justify-center gap-2">
+                        {Array.from({ length: carouselPageCount }).map((_, index) => (
+                          <span
+                            key={index}
+                            className={index === carouselIndex ? "h-1.5 w-6 rounded-full bg-white/80" : "h-1.5 w-1.5 rounded-full bg-white/35"}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-white/45 rounded-xl border border-dashed border-white/15 bg-white/5 p-4">
+                    No recent issues yet. Your newly submitted issues will show up here.
+                  </p>
+                )}
+              </div>
             </div>
           </>
         )}

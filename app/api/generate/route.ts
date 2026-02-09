@@ -1,7 +1,8 @@
 import OpenAI from 'openai'
 import { z } from "zod"
 import { NextResponse } from "next/server"
-import { log } from 'console'
+import { auth } from "@/lib/auth"
+import { createIssueContentLog, trackEvent } from "@/lib/analytics"
 
 // Schema for validating the request body
 const requestSchema = z.object({
@@ -24,9 +25,29 @@ const openai = new OpenAI({
 })
 
 export async function POST(req: Request) {
+  const startedAt = Date.now()
+
   try {
+    const session = await auth()
+
+    if (!session) {
+      return NextResponse.json(
+        { error: "Unauthorized. Please sign in with GitHub." },
+        { status: 401 }
+      )
+    }
+
     const json = await req.json()
     const { input } = requestSchema.parse(json)
+
+    await trackEvent({
+      userId: session.user.id,
+      eventType: "issue_generate",
+      status: "requested",
+      metadata: {
+        inputLength: input.length,
+      },
+    })
 
     const completion = await openai.chat.completions.create({
       model: 'openai/gpt-oss-safeguard-20b',
@@ -66,13 +87,11 @@ export async function POST(req: Request) {
       throw new Error("No content received from AI")
     }
 
-    
-
     // Try to extract JSON from the response
     let parsedContent
     try {
       parsedContent = JSON.parse(content)
-    } catch (parseError) {
+    } catch {
       // If direct parsing fails, try to extract JSON from markdown code blocks
       const jsonMatch = content.match(/```json\s*(\{[\s\S]*?\})\s*```/) || content.match(/\{[\s\S]*\}/)
       if (jsonMatch) {
@@ -84,9 +103,50 @@ export async function POST(req: Request) {
 
     const validResponse = responseSchema.parse(parsedContent)
 
-    return NextResponse.json(validResponse)
+    const generationRequestId = crypto.randomUUID()
+
+    await createIssueContentLog({
+      userId: session.user.id,
+      generationRequestId,
+      rawInput: input,
+      generatedTitle: validResponse.title,
+      generatedBody: validResponse.body,
+    })
+
+    await trackEvent({
+      userId: session.user.id,
+      eventType: "issue_generate",
+      status: "success",
+      latencyMs: Date.now() - startedAt,
+      metadata: {
+        model: "openai/gpt-oss-safeguard-20b",
+        inputLength: input.length,
+        generatedTitleLength: validResponse.title.length,
+        generatedBodyLength: validResponse.body.length,
+      },
+    })
+
+    return NextResponse.json({
+      ...validResponse,
+      generationRequestId,
+    })
   } catch (error) {
     console.error("Error generating issue:", error)
+
+    const session = await auth().catch(() => null)
+    if (session) {
+      await trackEvent({
+        userId: session.user.id,
+        eventType: "issue_generate",
+        status: "failed",
+        latencyMs: Date.now() - startedAt,
+        errorCode: error instanceof Error ? error.name : "unknown_error",
+        metadata: {
+          message: error instanceof Error ? error.message : String(error),
+        },
+      })
+    }
+
     return NextResponse.json(
       { error: "Failed to generate issue", details: error instanceof Error ? error : String(error) },
       { status: 500 }

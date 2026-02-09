@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { userPreferences } from "@/drizzle/schema"
 import { eq } from "drizzle-orm"
+import { attachSubmitDataToIssueContentLog, createIssueContentLog, trackEvent } from "@/lib/analytics"
 
 // Schema for validating the request body
 const requestSchema = z.object({
@@ -12,9 +13,12 @@ const requestSchema = z.object({
   label: z.enum(["P0-Unbreak Now", "P1-Must Have", "P2-Normal", "P3-Low Priority"]),
   repoOwner: z.string().min(1, "Repository owner is required"),
   repoName: z.string().min(1, "Repository name is required"),
+  generationRequestId: z.string().uuid().optional(),
 })
 
 export async function POST(req: Request) {
+  const startedAt = Date.now()
+
   try {
     const session = await auth()
 
@@ -26,7 +30,21 @@ export async function POST(req: Request) {
     }
 
     const json = await req.json()
-    const { title, body, label, repoOwner, repoName } = requestSchema.parse(json)
+    const { title, body, label, repoOwner, repoName, generationRequestId } = requestSchema.parse(json)
+
+    await trackEvent({
+      userId: session.user.id,
+      eventType: "issue_submit",
+      status: "requested",
+      repoOwner,
+      repoName,
+      label,
+      metadata: {
+        titleLength: title.length,
+        bodyLength: body.length,
+        hasGenerationRequestId: Boolean(generationRequestId),
+      },
+    })
 
     // First check if the repository exists and is accessible
     const repoCheckResponse = await fetch(
@@ -107,6 +125,45 @@ export async function POST(req: Request) {
 
     const issue = await response.json()
 
+    if (generationRequestId) {
+      const updated = await attachSubmitDataToIssueContentLog({
+        userId: session.user.id,
+        generationRequestId,
+        repoOwner,
+        repoName,
+        label,
+        finalTitle: title,
+        finalBody: body,
+        issueUrl: issue.html_url,
+        issueNumber: issue.number,
+      })
+
+      if (!updated) {
+        await createIssueContentLog({
+          userId: session.user.id,
+          generationRequestId,
+          repoOwner,
+          repoName,
+          label,
+          finalTitle: title,
+          finalBody: body,
+          issueUrl: issue.html_url,
+          issueNumber: issue.number,
+        })
+      }
+    } else {
+      await createIssueContentLog({
+        userId: session.user.id,
+        repoOwner,
+        repoName,
+        label,
+        finalTitle: title,
+        finalBody: body,
+        issueUrl: issue.html_url,
+        issueNumber: issue.number,
+      })
+    }
+
     // Update user preferences with last selected repo
     try {
       const existingPreference = await db.query.userPreferences.findFirst({
@@ -134,12 +191,44 @@ export async function POST(req: Request) {
       console.error("Failed to update user preferences:", dbError)
     }
 
+    await trackEvent({
+      userId: session.user.id,
+      eventType: "issue_submit",
+      status: "success",
+      repoOwner,
+      repoName,
+      label,
+      latencyMs: Date.now() - startedAt,
+      metadata: {
+        issueNumber: issue.number,
+        issueUrl: issue.html_url,
+      },
+    })
+
     return NextResponse.json({
       issueNumber: issue.number,
       issueUrl: issue.html_url,
+      issueTitle: issue.title,
+      issueState: issue.state,
+      issueCreatedAt: issue.created_at,
+      repoFullName: `${repoOwner}/${repoName}`,
     })
   } catch (error) {
     console.error("Error submitting issue:", error)
+
+    const session = await auth().catch(() => null)
+    if (session) {
+      await trackEvent({
+        userId: session.user.id,
+        eventType: "issue_submit",
+        status: "failed",
+        latencyMs: Date.now() - startedAt,
+        errorCode: error instanceof Error ? error.name : "unknown_error",
+        metadata: {
+          message: error instanceof Error ? error.message : String(error),
+        },
+      })
+    }
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(

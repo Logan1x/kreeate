@@ -1,4 +1,4 @@
-import { pgTable, text, primaryKey, integer, timestamp } from "drizzle-orm/pg-core"
+import { pgTable, text, primaryKey, integer, timestamp, jsonb, index } from "drizzle-orm/pg-core"
 import type { AdapterAccountType } from "next-auth/adapters"
 
 export const users = pgTable("user", {
@@ -92,3 +92,63 @@ export const userPreferences = pgTable("user_preferences", {
   createdAt: timestamp("createdAt", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updatedAt", { mode: "date" }).defaultNow().notNull(),
 })
+
+export const analyticsEvents = pgTable(
+  "analytics_events",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    eventType: text("eventType").notNull(),
+    status: text("status").notNull(),
+    sessionId: text("sessionId"),
+    repoOwner: text("repoOwner"),
+    repoName: text("repoName"),
+    label: text("label"),
+    latencyMs: integer("latencyMs"),
+    errorCode: text("errorCode"),
+    metadata: jsonb("metadata"),
+    occurredAt: timestamp("occurredAt", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => ({
+    userOccurredIdx: index("analytics_events_user_occurred_idx").on(table.userId, table.occurredAt),
+    typeOccurredIdx: index("analytics_events_type_occurred_idx").on(table.eventType, table.occurredAt),
+    statusOccurredIdx: index("analytics_events_status_occurred_idx").on(table.status, table.occurredAt),
+  })
+)
+
+export const issueContentLogs = pgTable(
+  "issue_content_logs",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    generationRequestId: text("generationRequestId"),
+    repoOwner: text("repoOwner"),
+    repoName: text("repoName"),
+    label: text("label"),
+    rawInput: text("rawInput"),
+    generatedTitle: text("generatedTitle"),
+    generatedBody: text("generatedBody"),
+    finalTitle: text("finalTitle"),
+    finalBody: text("finalBody"),
+    rawInputLength: integer("rawInputLength"),
+    generatedBodyLength: integer("generatedBodyLength"),
+    finalBodyLength: integer("finalBodyLength"),
+    issueUrl: text("issueUrl"),
+    issueNumber: integer("issueNumber"),
+    createdAt: timestamp("createdAt", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => ({
+    userCreatedIdx: index("issue_content_logs_user_created_idx").on(table.userId, table.createdAt),
+    generationRequestIdx: index("issue_content_logs_generation_request_idx").on(table.generationRequestId),
+    repoCreatedIdx: index("issue_content_logs_repo_created_idx").on(table.repoOwner, table.repoName, table.createdAt),
+  })
+)
