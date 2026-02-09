@@ -19,9 +19,9 @@ const PRIORITY_LABELS = [
 ] as const
 
 const ISSUE_TYPE_PRESETS = [
-  { value: "bug", label: "Bug", description: "Fix broken behavior" },
-  { value: "feature", label: "Feature", description: "Add new capability" },
-  { value: "task", label: "Task", description: "Maintenance and chores" },
+  { value: "bug", label: "Bug" },
+  { value: "feature", label: "Feature" },
+  { value: "task", label: "Task" },
 ] as const
 
 const LOCAL_SELECTED_REPO_KEY = "kreeate:selected-repo"
@@ -447,19 +447,18 @@ export default function Home() {
                     </p>
                     <div className="mb-4">
                       <label className="text-sm font-medium mb-2 block text-white/70">Issue type</label>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="grid grid-cols-3 gap-2">
                         {ISSUE_TYPE_PRESETS.map((type) => (
                           <button
                             key={type.value}
                             type="button"
                             onClick={() => setSelectedIssueType(type.value)}
-                            className={`min-w-[130px] rounded-lg border px-2.5 py-1.5 text-left transition-colors cursor-pointer ${selectedIssueType === type.value
+                            className={`w-full rounded-lg border px-2.5 py-1.5 text-center transition-colors cursor-pointer ${selectedIssueType === type.value
                               ? "border-white/35 bg-white/20 text-white"
                               : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
                               }`}
                           >
                             <p className="text-xs font-semibold leading-tight">{type.label}</p>
-                            <p className="text-[11px] text-white/45 mt-0.5 leading-tight">{type.description}</p>
                           </button>
                         ))}
                       </div>
