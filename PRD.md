@@ -73,10 +73,10 @@ Ship five product improvements in sequence to improve issue quality, speed, and 
 
 ## Implementation Todos
 
-- [ ] PR #1: Issue type presets
-- [ ] PR #2: Auto priority suggestion
-- [ ] PR #3: Pinned repositories
-- [ ] PR #4: Rate limiting
-- [ ] PR #5: Model fallback
-- [ ] Update docs after each feature
-- [ ] Run lint/build checks per feature
+- [x] PR #1: Issue type presets
+- [x] PR #2: Auto priority suggestion
+- [x] PR #3: Pinned repositories
+- [x] PR #4: Rate limiting
+- [x] PR #5: Model fallback
+- [x] Update docs after each feature
+- [x] Run lint/build checks per feature
