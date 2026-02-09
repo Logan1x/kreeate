@@ -137,6 +137,10 @@ export async function POST(req: Request) {
     return NextResponse.json({
       issueNumber: issue.number,
       issueUrl: issue.html_url,
+      issueTitle: issue.title,
+      issueState: issue.state,
+      issueCreatedAt: issue.created_at,
+      repoFullName: `${repoOwner}/${repoName}`,
     })
   } catch (error) {
     console.error("Error submitting issue:", error)
