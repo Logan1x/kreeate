@@ -1,36 +1,102 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kreeate
 
-## Getting Started
+Kreeate is an AI-assisted GitHub issue creator.
 
-First, run the development server:
+You describe a bug, feature, or task in plain English, Kreeate formats it into a concise issue draft, suggests priority, and lets you submit directly to a selected repository after GitHub sign-in.
+
+## Features
+
+- GitHub OAuth authentication with per-user repository access
+- AI issue generation with issue type presets (`Bug`, `Feature`, `Task`)
+- Auto priority suggestion (`P0` to `P3`) with manual override
+- Repository selector with pin/unpin and last-selection memory
+- Recent issues carousel for quick access
+- API rate limiting on generate/submit endpoints
+- Model fallback support for more reliable generation
+
+## Tech Stack
+
+- Next.js (App Router) + React + TypeScript
+- NextAuth v5 (GitHub provider)
+- Drizzle ORM + PostgreSQL (Neon-friendly)
+- Tailwind CSS + shadcn/ui
+- OpenRouter via OpenAI SDK-compatible client
+
+## Installation
+
+### 1) Install dependencies
+
+```bash
+npm install
+```
+
+### 2) Configure environment variables
+
+```bash
+cp .env.local.example .env.local
+```
+
+Set these values in `.env.local`:
+
+```env
+# Database
+DATABASE_URL="postgresql://..."
+
+# NextAuth
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your_generated_secret"
+
+# GitHub OAuth
+GITHUB_ID="your_github_oauth_client_id"
+GITHUB_SECRET="your_github_oauth_client_secret"
+
+# OpenRouter
+OPENROUTER_API_KEY="your_openrouter_api_key"
+
+# Optional model overrides
+OPENROUTER_PRIMARY_MODEL="openai/gpt-oss-safeguard-20b"
+OPENROUTER_FALLBACK_MODEL="deepseek/deepseek-v3.2"
+```
+
+Generate a secure `NEXTAUTH_SECRET`:
+
+```bash
+openssl rand -base64 32
+```
+
+### 3) Set up GitHub OAuth app
+
+Create an OAuth app in GitHub Developer Settings with:
+
+- Homepage URL: `http://localhost:3000`
+- Callback URL: `http://localhost:3000/api/auth/callback/github`
+
+### 4) Run database migrations
+
+```bash
+npx drizzle-kit migrate
+```
+
+### 5) Start development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Common Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run dev` - start local dev server
+- `npm run build` - production build
+- `npm run start` - run production server
+- `npm run lint` - run ESLint
 
-## Learn More
+## API Routes
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `POST /api/generate` - generate issue draft
+- `POST /api/submit` - create issue in GitHub repo
+- `GET /api/repos` - list accessible repos
+- `GET /api/preferences` - get last repo and pinned repos
+- `POST /api/preferences` - pin/unpin repos
+- `GET /api/recent-issues` - list recently created issues
