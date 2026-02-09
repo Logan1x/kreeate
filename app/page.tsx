@@ -24,6 +24,8 @@ const ISSUE_TYPE_PRESETS = [
   { value: "task", label: "Task", description: "Maintenance and chores" },
 ] as const
 
+const LOCAL_SELECTED_REPO_KEY = "kreeate:selected-repo"
+
 interface RecentIssue {
   id: number
   number: number
@@ -68,10 +70,36 @@ export default function Home() {
 
   useEffect(() => {
     if (session) {
+      try {
+        const savedRepo = window.localStorage.getItem(LOCAL_SELECTED_REPO_KEY)
+        if (savedRepo) {
+          const parsed = JSON.parse(savedRepo) as { owner?: string; name?: string }
+          if (parsed.owner && parsed.name) {
+            setSelectedRepo({ owner: parsed.owner, name: parsed.name })
+          }
+        }
+      } catch (error) {
+        console.error("Failed to restore local repository selection:", error)
+      }
+
       fetchUserPreferences()
       fetchRecentIssues()
     }
   }, [session])
+
+  useEffect(() => {
+    if (!session) return
+
+    try {
+      if (selectedRepo) {
+        window.localStorage.setItem(LOCAL_SELECTED_REPO_KEY, JSON.stringify(selectedRepo))
+      } else {
+        window.localStorage.removeItem(LOCAL_SELECTED_REPO_KEY)
+      }
+    } catch (error) {
+      console.error("Failed to persist local repository selection:", error)
+    }
+  }, [selectedRepo, session])
 
   const fetchUserPreferences = async () => {
     try {
@@ -419,19 +447,19 @@ export default function Home() {
                     </p>
                     <div className="mb-4">
                       <label className="text-sm font-medium mb-2 block text-white/70">Issue type</label>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <div className="flex flex-wrap gap-2">
                         {ISSUE_TYPE_PRESETS.map((type) => (
                           <button
                             key={type.value}
                             type="button"
                             onClick={() => setSelectedIssueType(type.value)}
-                            className={`rounded-xl border px-3 py-2 text-left transition-colors cursor-pointer ${selectedIssueType === type.value
+                            className={`min-w-[130px] rounded-lg border px-2.5 py-1.5 text-left transition-colors cursor-pointer ${selectedIssueType === type.value
                               ? "border-white/35 bg-white/20 text-white"
                               : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
                               }`}
                           >
-                            <p className="text-sm font-medium">{type.label}</p>
-                            <p className="text-xs text-white/45 mt-0.5">{type.description}</p>
+                            <p className="text-xs font-semibold leading-tight">{type.label}</p>
+                            <p className="text-[11px] text-white/45 mt-0.5 leading-tight">{type.description}</p>
                           </button>
                         ))}
                       </div>
