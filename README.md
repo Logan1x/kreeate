@@ -56,6 +56,9 @@ OPENROUTER_API_KEY="your_openrouter_api_key"
 # Optional model overrides
 OPENROUTER_PRIMARY_MODEL="openai/gpt-oss-safeguard-20b"
 OPENROUTER_FALLBACK_MODEL="deepseek/deepseek-v3.2"
+
+# Optional admin analytics access
+ADMIN_EMAILS="admin1@example.com,admin2@example.com"
 ```
 
 Generate a secure `NEXTAUTH_SECRET`:
@@ -100,3 +103,8 @@ Open `http://localhost:3000`.
 - `GET /api/preferences` - get last repo and pinned repos
 - `POST /api/preferences` - pin/unpin repos
 - `GET /api/recent-issues` - list recently created issues
+- `GET /api/admin/analytics` - admin metrics for generation reliability
+
+Admin dashboard:
+
+- `/admin/analytics` - visualizes success/fail rate, fallback usage, and rate-limited requests

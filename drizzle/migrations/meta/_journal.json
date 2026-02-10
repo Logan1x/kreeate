@@ -15,6 +15,34 @@
       "when": 1770739200000,
       "tag": "0002_add_pinned_repos",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1771002000000,
+      "tag": "0003_authjs_compat_columns",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1771005600000,
+      "tag": "0004_add_account_expires_at",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1771009200000,
+      "tag": "0005_relax_legacy_auth_not_nulls",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1771012800000,
+      "tag": "0006_create_analytics_tables",
+      "breakpoints": true
     }
   ]
 }
