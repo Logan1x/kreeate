@@ -1,3 +1,4 @@
+import Image from "next/image"
 import type { Session } from "next-auth"
 import { signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
@@ -22,10 +23,12 @@ export function TopNav({ session }: TopNavProps) {
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-2">
             {session.user?.image && (
-              <img
+              <Image
                 src={session.user.image}
                 alt={session.user.name || "User avatar"}
-                className="h-8 w-8 rounded-full"
+                width={32}
+                height={32}
+                className="h-8 w-8 shrink-0 rounded-full object-cover object-center"
               />
             )}
             <div className="hidden sm:flex flex-col">

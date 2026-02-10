@@ -22,13 +22,13 @@ export function SignInButton() {
     <Button
       onClick={handleSignIn}
       disabled={isLoading}
-      className="w-full sm:w-auto rounded-xl cursor-pointer"
+      className="w-full sm:w-auto rounded-xl cursor-pointer text-base font-medium"
       size="lg"
     >
       {isLoading ? (
-        <IconLoader2 className="mr-2 h-5 w-5 animate-spin" />
+        <IconLoader2 stroke={2.25} className="mr-1.5 h-5 w-5 animate-spin" />
       ) : (
-        <IconBrandGithub className="mr-2 h-5 w-5" />
+        <IconBrandGithub stroke={2.25} className="mr-1.5 h-5 w-5" />
       )}
       {isLoading ? "Signing in..." : "Sign in with GitHub"}
     </Button>
