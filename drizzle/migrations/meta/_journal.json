@@ -36,6 +36,13 @@
       "when": 1771009200000,
       "tag": "0005_relax_legacy_auth_not_nulls",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1771012800000,
+      "tag": "0006_create_analytics_tables",
+      "breakpoints": true
     }
   ]
 }

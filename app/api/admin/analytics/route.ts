@@ -69,6 +69,19 @@ export async function GET() {
       })),
     })
   } catch (error) {
+    const code = typeof error === "object" && error !== null && "code" in error
+      ? String((error as { code?: string }).code)
+      : ""
+
+    if (code === "42P01") {
+      return NextResponse.json(
+        {
+          error: "Analytics tables are missing. Run `npx drizzle-kit migrate` to create them.",
+        },
+        { status: 503 }
+      )
+    }
+
     console.error("Failed to fetch admin analytics:", error)
     return NextResponse.json({ error: "Failed to fetch analytics" }, { status: 500 })
   }
