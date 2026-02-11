@@ -13,6 +13,8 @@ You describe a bug, feature, or task in plain English, Kreeate formats it into a
 - Recent issues carousel for quick access
 - API rate limiting on generate/submit endpoints
 - Model fallback support for more reliable generation
+- Admin analytics endpoint and dashboard (`/api/admin/analytics`, `/admin/analytics`)
+- Backend test baseline for rate limiting, admin gating, and API auth guards
 
 ## Tech Stack
 
@@ -27,7 +29,7 @@ You describe a bug, feature, or task in plain English, Kreeate formats it into a
 ### 1) Install dependencies
 
 ```bash
-npm install
+pnpm install
 ```
 
 ### 2) Configure environment variables
@@ -83,17 +85,19 @@ npx drizzle-kit migrate
 ### 5) Start development server
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 Open `http://localhost:3000`.
 
 ## Common Scripts
 
-- `npm run dev` - start local dev server
-- `npm run build` - production build
-- `npm run start` - run production server
-- `npm run lint` - run ESLint
+- `pnpm dev` - start local dev server
+- `pnpm build` - production build
+- `pnpm start` - run production server
+- `pnpm lint` - run ESLint
+- `pnpm test` - run backend/unit tests once
+- `pnpm test:watch` - run tests in watch mode
 
 ## API Routes
 
