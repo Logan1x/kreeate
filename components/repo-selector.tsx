@@ -84,6 +84,14 @@ export function RepoSelector({ value, onChange, lastRepo, pinnedRepos = [], onPi
     setPinned(pinnedRepos)
   }, [pinnedRepos])
 
+  useEffect(() => {
+    if (!value) return
+
+    setSelectedOwner((current) => (current === value.owner ? current : value.owner))
+    setManualOwner(value.owner)
+    setManualRepo(value.name)
+  }, [value])
+
   const fetchRepos = async () => {
     setIsLoading(true)
     setError(null)
@@ -153,20 +161,31 @@ export function RepoSelector({ value, onChange, lastRepo, pinnedRepos = [], onPi
   }
 
   const isRepoPinned = (owner: string, name: string) => {
-    return pinned.some((repo) => repo.owner === owner && repo.name === name)
+    const target = `${owner}/${name}`.toLowerCase()
+    return pinned.some((repo) => `${repo.owner}/${repo.name}`.toLowerCase() === target)
   }
 
   const persistPinnedRepo = async (action: "pin" | "unpin", repo: { owner: string; name: string }) => {
     setIsSavingPinned(true)
+    setError(null)
     try {
+      const normalizedRepo = {
+        owner: repo.owner.trim(),
+        name: repo.name.trim(),
+      }
+
       const response = await fetch("/api/preferences", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, repo }),
+        body: JSON.stringify({ action, repo: normalizedRepo }),
       })
 
       if (!response.ok) {
-        throw new Error("Failed to update pinned repos")
+        const payload = await response.json().catch(() => null)
+        const message = payload && typeof payload.error === "string"
+          ? payload.error
+          : "Failed to update pinned repos"
+        throw new Error(message)
       }
 
       const data = await response.json()
@@ -174,6 +193,8 @@ export function RepoSelector({ value, onChange, lastRepo, pinnedRepos = [], onPi
       setPinned(nextPinned)
       onPinnedReposChange?.(nextPinned)
     } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to update pinned repos"
+      setError(message)
       console.error(error)
     } finally {
       setIsSavingPinned(false)

@@ -6,8 +6,8 @@ import { userPreferences } from "@/drizzle/schema"
 import { eq } from "drizzle-orm"
 
 const pinnedRepoSchema = z.object({
-  owner: z.string().min(1),
-  name: z.string().min(1),
+  owner: z.string().trim().min(1),
+  name: z.string().trim().min(1),
 })
 
 const updatePinnedReposSchema = z.object({
@@ -39,7 +39,7 @@ export async function GET() {
   try {
     const session = await auth()
 
-    if (!session) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -76,7 +76,7 @@ export async function POST(req: Request) {
   try {
     const session = await auth()
 
-    if (!session) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
