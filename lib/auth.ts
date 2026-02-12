@@ -23,7 +23,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       allowDangerousEmailAccountLinking: true,
       authorization: {
         params: {
-          scope: "repo user:email",
+          scope: "repo user:email read:project",
         },
       },
     }),

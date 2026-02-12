@@ -1,4 +1,8 @@
+"use client"
+
+import Link from "next/link"
 import Image from "next/image"
+import { usePathname } from "next/navigation"
 import type { Session } from "next-auth"
 import { signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
@@ -8,6 +12,8 @@ interface TopNavProps {
 }
 
 export function TopNav({ session }: TopNavProps) {
+  const pathname = usePathname()
+
   return (
     <nav className="w-full flex justify-between items-center mb-16 md:mb-24 animate-in fade-in slide-in-from-top-4 duration-700">
       <div className="flex items-center gap-1.5 group cursor-default">
@@ -21,6 +27,20 @@ export function TopNav({ session }: TopNavProps) {
       </div>
       {session && (
         <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center rounded-lg border border-white/10 bg-white/5 p-1">
+            <Link
+              href="/"
+              className={`px-2 py-1 text-xs rounded-md transition-colors ${pathname === "/" ? "bg-white/20 text-white" : "text-white/60 hover:text-white hover:bg-white/10"}`}
+            >
+              Issues
+            </Link>
+            <Link
+              href="/projects"
+              className={`px-2 py-1 text-xs rounded-md transition-colors ${pathname?.startsWith("/projects") ? "bg-white/20 text-white" : "text-white/60 hover:text-white hover:bg-white/10"}`}
+            >
+              Projects
+            </Link>
+          </div>
           <div className="flex items-center gap-2">
             {session.user?.image && (
               <Image
