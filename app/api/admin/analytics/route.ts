@@ -17,7 +17,7 @@ export async function GET() {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
 
     const [totals] = await db
       .select({
@@ -49,7 +49,7 @@ export async function GET() {
     const generateTotal = generateSuccess + generateFailed
 
     return NextResponse.json({
-      range: "7d",
+      range: "30d",
       generatedAt: new Date().toISOString(),
       totals: {
         generateSuccess,

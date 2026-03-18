@@ -69,7 +69,7 @@ export default function AdminAnalyticsPage() {
         <div className="flex items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold">Admin Analytics</h1>
-            <p className="text-sm text-white/60">Issue generation reliability for the last 7 days.</p>
+            <p className="text-sm text-white/60">Issue generation reliability for the last 30 days.</p>
           </div>
           <Button
             type="button"
